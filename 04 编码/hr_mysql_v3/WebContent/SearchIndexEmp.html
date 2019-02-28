@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<!--设置浏览器的布局视口，只在移动端浏览器起作用-->
+		<meta name="viewport" content="width=width-device,initial-scale=1,user-scalable=no" />
+		<title></title>
+		<!--引入bootstrap的核心css-->
+		<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+		<!--引入日历css-->
+		<link rel="stylesheet" href="js/datetimepicker/jquery.datetimepicker.css" />
+		
+		<!--判断如果是IE9以下，引入兼容h5标签的js文件，注意空格的位置-->		
+		<!--[if lt IE 9]>
+		<script src="js/bootstrap/js/html5shiv.min.js"></script>
+		<script src="js/bootstrap/js/respond.min.js"></script>		
+		<![end if] -->
+		
+		<style>
+			.pagination {
+				margin: 0!important;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">		
+			
+			<ol class="breadcrumb">
+				<li><a href="#">人力资源管理系统</a></li>
+				<li><a href="#">员工管理</a></li>
+				<li>员工全文检索</li>
+			</ol>
+			
+			<h2 class="page-header">全文检索员工数据</h2>
+			
+			<div class="row">
+				<div class="col-sm-8">
+	            	<div class="input-group">                	
+	                	<input type="text" class="form-control" id="keywords" name="keywords" placeholder="请输入员工姓名，电话，简介关键字">
+	                    <span class="input-group-btn">
+	                    	<button type="button" class="btn btn-primary" id="searchBtn">搜素员工</button>
+	                    </span>	                    
+	                </div>            
+	            </div>
+	            <div class="col-sm-4">
+	            	<a href="SearchEmp.html" class="btn btn-primary">切换到普通搜索</a>
+	            </div>
+			</div>			
+			
+			<div class="alert alert-info" id="alert" style="display:none;">
+				没有满足条件的记录
+			</div>			
+						
+			<table class="table table-bordered table-striped" id="dataTable">
+				<thead>
+					<tr>
+						<th>员工编号</th>
+						<th>员工姓名</th>							
+						<th>电话</th>						
+						<th>员工描述</th>
+						<th>操作</th>						
+					</tr>
+				</thead>
+				<tbody>
+					
+				</tbody>
+			</table>
+								
+		</div>
+		
+		<!--引入jquery-->
+		<script src="js/jquery.js"></script>
+		<!-- 引入全局js -->
+		<script src="js/global.js"></script>
+		<!--引入请求参数插件js-->
+		<script src="js/param.js"></script>
+		<!--引入bootstrap的js功能-->
+		<script src="js/bootstrap/js/bootstrap.js"></script>
+		<!--引入layer插件-->
+		<script src="js/layer/layer.js"></script>
+		<!--引入日历js-->
+		<script src="js/datetimepicker/jquery.datetimepicker.js"></script>
+				
+		<script>
+			$(function(){
+							
+				//查询函数
+				function getData() {
+					
+					var params = {
+						keywords:$('#keywords').val()
+					}
+					
+					$.ajax({
+						url:baseUrl + '/emp/queryByIndex',
+						type:'POST',
+						dataType:'json',
+						data:params					
+					})
+					.done(function(data) {
+						
+						//判断是否有数据
+						if (data.recordCount == 0) {
+							$('#alert').show();
+							$('#dataTable').hide();
+							return;
+						} else {
+							$('#alert').hide();
+							$('#dataTable').show();
+						}						
+						
+						var list = data.list;//获得数据集合
+						
+						var html;//拼接html字符串
+						
+						var dataTable = $('#dataTable tbody');
+												
+						//清空原始内容
+						dataTable.empty();
+												
+						//遍历数据集合
+						$.each(list, function(index,item) {
+							
+							html = '<tr>';
+							html += '	<td>' + item.empId + '</td>';
+							html += '	<td>' + item.empName + '</td>';						
+							html += '	<td>' + item.empPhone + '</td>';							
+							html += '	<td>' + item.empInfo + '</td>';
+							html += '	<td>';
+							html += '		<input type="button" data-id="' + item.empId + '" value="删除" class="btn btn-danger btn-sm del-btn"/>';
+							html += '		<input type="button" data-id="' + item.empId + '" value="详情" class="btn btn-success btn-sm update-btn" />';
+							html += '	</td>';
+							html += '</tr>';
+							
+							dataTable.append(html);							
+						});
+						
+					})
+					.fail(function(xhr,errorStatus,errorText) {
+						layer.msg('请求失败，' + errorText + ',' + xhr.status );					
+					});
+									
+				}					
+				
+				//利用事件委托添加删除按钮操作
+				$('#dataTable').on('click','.del-btn',function() {
+					
+					if ( !window.confirm('确定要删除此员工数据吗？') ) {
+						return;					
+					}
+					
+					//获得当前员工id
+					var empId = $(this).attr('data-id');
+					
+					var that = this;
+					
+					$.post(baseUrl + '/emp/delete',{empId:empId},function() {
+						
+						layer.msg('删除成功');
+						
+						//删除前端数据行
+						$(that).parents('tr').remove();
+						
+					})
+					.error(function(xhr,errorStatus,errorText) {
+						layer.msg('请求失败，' + xhr.status + ',' + errorText);
+					});
+										
+				});
+				
+				//利用事件委托添加详情按钮功能
+				$('#dataTable').on('click','.update-btn',function() {
+					
+					//获得当前员工id
+					var empId = $(this).attr('data-id');
+					
+					// 弹出员工详情模态层
+					layer.open({
+						title:'员工详情',
+					    type: 2, 				   
+					    area: ['700px', '600px'], //宽高
+					    content: 'UpdateEmp.html?empId=' + empId
+					});
+					
+				});
+				
+				//条件检索员工数据
+				$('#searchBtn').click(function() {		
+					
+					if ($('#keywords').val() == '') {
+						layer.msg("必须输入搜索关键字");
+						return;
+					}
+					
+					//调用后台数据
+					getData();
+				});				
+				
+				
+			});				
+		</script>
+	</body>
+</html>

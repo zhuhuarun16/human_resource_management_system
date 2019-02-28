@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<!--设置浏览器的布局视口，只在移动端浏览器起作用-->
+		<meta name="viewport" content="width=width-device,initial-scale=1,user-scalable=no" />
+		<title></title>
+		<!--引入bootstrap的核心css-->
+		<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+		
+		<!--判断如果是IE9以下，引入兼容h5标签的js文件，注意空格的位置-->		
+		<!--[if lt IE 9]>
+		<script src="js/bootstrap/js/html5shiv.min.js"></script>
+		<script src="js/bootstrap/js/respond.min.js"></script>		
+		<![end if] -->
+	</head>
+	<body>
+		<div class="container">		
+			
+			<ol class="breadcrumb">
+				<li><a href="#">人力资源管理系统</a></li>
+				<li><a href="#">职务管理</a></li>
+				<li>增加新职务</li>
+			</ol>
+			
+			<h2 class="page-header">增加新职务</h2>
+			
+			<form id="form1" class="form-horizontal">
+				<div class="form-group">
+					<label for="" class="col-md-2">职务名称</label>
+					<div class="col-md-10">
+						<input id="jobName" name="jobName" type="text" placeholder="请输入职务名称" class="form-control"/>
+					</div>					
+				</div>	
+				<div class="form-group">
+					<label for="" class="col-md-2">最低工资</label>
+					<div class="col-md-10">
+						<input id="jobMinSal" name="jobMinSal" type="text" placeholder="请输入最低工资" class="form-control"/>
+					</div>					
+				</div>	
+				<div class="form-group">
+					<label for="" class="col-md-2">最高工资</label>
+					<div class="col-md-10">
+						<input id="jobMaxSal" name="jobMaxSal" type="text" placeholder="请输入最高工资" class="form-control"/>
+					</div>					
+				</div>
+				<div class="form-group">					
+					<div class="col-md-10 col-md-offset-2">
+						<input type="button" value="增加职务" class="btn btn-success" id="addBtn"/>
+						<input type="button" value="取消" class="btn btn-danger" onclick="history.back();" />
+					</div>
+				</div>
+			</form>		
+		</div>
+		
+		<!--引入jquery-->
+		<script src="js/jquery.js"></script>
+		<!--引入全局公共js-->
+		<script src="js/global.js"></script>
+		<!--引入bootstrap的js功能-->
+		<script src="js/bootstrap/js/bootstrap.js"></script>
+		<!--引入layer插件-->
+		<script src="js/layer/layer.js"></script>
+		<script>
+			
+			$(function(){
+				
+				/*表单验证函数*/
+				function checkForm() {
+
+					//验证职务名称
+					var jobName = $('#jobName');
+					var jobMinSal = $('#jobMinSal');
+					var jobMaxSal = $('#jobMaxSal');
+					var r = /^[1-9]\d{0,5}$/;
+			
+					if (jobName.val() == '' || jobName.val().length > 10) {
+						layer.msg('职务名称不能为空且最多10字符');
+						jobName.focus();
+						return false;
+					}
+					
+					//验证最低工资必须1~6位整数
+					if(!r.test(jobMinSal.val())){
+						layer.msg('最低工资必须1-6位数，且不能为空！');
+						jobMinSal.focus();
+						return false;
+					}
+					
+					//验证最高工资必须1~6位整数	
+					
+					if(!r.test(jobMaxSal.val())){
+						layer.msg('最高工资必须1-6位数，，且不能为空！');
+						jobMaxSal.focus();
+						return false;
+						
+					}
+					
+					//验证最低工资不能高于最高工资
+					if(parseInt(jobMaxSal.val()) < parseInt(jobMinSal.val())){
+						layer.msg('最低工资不能大于最高工资！');
+						jobMaxSal.focus();
+						return false;
+					}
+			
+					return true;
+				}
+				
+				//单击增加职务按钮
+				$('#addBtn').click(function() {		
+					
+					//调用表单验证
+					if ( !checkForm() ) {
+						return;
+					}
+					
+					//请求参数
+					/*var params = {
+						jobName:$('#jobName').val(),
+						jobMinSal:$('#jobMinSal').val(),
+						jobMaxSal:$('#jobMaxSal').val()
+					}*/
+					
+					var params = $('#form1').serialize();
+					
+					//发出ajax请求，调用后端代码
+					$.ajax({
+						url:baseUrl + '/job/add',
+						type:'POST',
+						dataType:'html',
+						data:params					
+					})
+					.done(function(data) {
+						
+						layer.msg('增加职务成功！');
+						
+						setTimeout(function() {
+							location.href = 'QueryJob.html';							
+						},500);
+						
+					})
+					.fail(function(xhr,errorStatus,errorText) {
+						layer.msg('请求失败，' + errorText + ',' + xhr.status );					
+					});										
+					
+				});				
+				
+			});			
+			
+		</script>
+	</body>
+</html>

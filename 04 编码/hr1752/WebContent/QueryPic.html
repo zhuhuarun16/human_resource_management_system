@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<!--设置浏览器的布局视口，只在移动端浏览器起作用-->
+<meta name="viewport"
+	content="width=width-device,initial-scale=1,user-scalable=no" />
+<title></title>
+<!--引入bootstrap的核心css-->
+<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+
+<!--判断如果是IE9以下，引入兼容h5标签的js文件，注意空格的位置-->
+<!--[if lt IE 9]>
+		<script src="js/bootstrap/js/html5shiv.min.js"></script>
+		<script src="js/bootstrap/js/respond.min.js"></script>		
+		<![end if] -->
+
+<style type="text/css">
+.img-list img {
+	border: none;
+	width: 200px;
+}
+
+.img-list .item {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	padding: 10px;
+	background: #eee;
+	margin: 5px;
+}
+
+.img-list .item p {
+	font-size: 14px;
+	text-align: center;
+	color: #333;
+	white-space: normal;
+	width: 200px;
+}
+
+.item .del-btn {
+	position: absolute;
+	top: 0;
+	right: 0;
+	display: none;
+}
+
+.item:hover .del-btn {
+	display: block;
+}
+
+.item .download-btn {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	display: none;
+}
+
+.item:hover .download-btn {
+	display: block;
+}
+</style>
+</head>
+
+<body>
+	<div class="container">
+
+		<ol class="breadcrumb">
+			<li><a href="#">人力资源管理系统</a></li>
+			<li><a href="#">图库管理</a></li>
+			<li>图片展示</li>
+		</ol>
+
+		<h2 class="page-header">图片展示列表</h2>
+
+		<div class="row">
+			<div class="col-sm-offset-8 col-sm-4">
+				<a href="javascript:;" class="btn btn-success btn-block" id="addBtn">添加图片</a>
+			</div>
+		</div>
+
+		<!--瀑布流列表开始-->
+		<div class="row img-list">
+			<!--<div class="item">
+					<a href="#">
+						<img src="images/liudehua.jpg"/>						
+					</a>
+					<p>这是文字描述</p>
+					<input type="button" value="删除" class="btn btn-danger btn-xs del-btn"/>
+					<a herf="" class="btn btn-info btn-xs download-btn">下载</a>
+				</div>							-->
+		</div>
+		<!--瀑布流列表结束-->
+	</div>
+
+	<!--引入jquery-->
+	<script src="js/jquery.js"></script>
+	<!--引入全局公共js-->
+	<script src="js/global.js"></script>
+	<!--引入bootstrap的js功能-->
+	<script src="js/bootstrap/js/bootstrap.js"></script>
+	<!--引入layer插件-->
+	<script src="js/layer/layer.js"></script>
+	<!--引入瀑布流插件js-->
+	<script src="js/masonry/jquery.masonry.js"></script>
+	<script>
+			$(function() {
+
+				var $container = $('.img-list');
+
+				//发出ajax请求，获得图片列表数据
+				$.getJSON(baseUrl + '/QueryPicServlet', function(data) {
+
+						var html; //拼接html字符串
+
+						$.each(data, function(index, item) {
+
+							html = '';
+							html += '<div class="item">';
+							html += '	<a target="_blank" href="ShowImg.jsp?picId=' + item.picId + '" title="' + item.picAuthor + ',' + item.picDatetime + '">';
+							html += '		<img src="GetPicServlet?picId=' + item.picId + '"/>';
+							html += '	</a>';
+							html += '	<p>' + item.picInfo + '</p>';
+							html += '	<input data-id="' + item.picId + '" type="button" value="删除" class="btn btn-danger btn-xs del-btn"/>';
+							html += '	<a href="DownloadPicServlet?picId=' + item.picId + '" class="btn btn-info btn-xs download-btn">下载</a>';
+							html += '</div>';
+
+							$container.append(html);
+						});
+
+						//当图片加载完毕
+						$container.imagesLoaded(function() {
+
+							//生成瀑布流布局
+							$container.masonry({
+								itemSelector: '.item',
+								columnWidth: 5 //每两列之间的间隙为5像素
+							});
+
+						});
+
+					})
+					.error(function(xhr) {
+						layer.msg('请求失败，' + xhr.status);
+					});
+
+				/**
+				 * 单击上传图片
+				 */
+				$('#addBtn').click(function() {
+
+					layer.open({
+						title: '图片上传',
+						type: 2,
+						area: ['700px', '600px'], //宽高
+						content: 'AddPic.html'
+					});
+
+				});
+
+				/**
+				 * 单击删除图片,事件委托实现
+				 */
+				$('.img-list').on('click', '.del-btn', function() {
+
+					/**
+					 * ajax请求
+					 */
+					var picId = $(this).attr('data-id');
+
+					var that = this;
+					
+					$.post(baseUrl + '/DelPicServlet', {picId: picId}, function() {
+						layer.msg('删除图片成功！');
+
+						//删除前端数据行
+						$(that).parents('.item').remove();
+						
+						//生成瀑布流布局
+						$container.masonry({
+							itemSelector: '.item',
+							columnWidth: 5 //每两列之间的间隙为5像素
+						});
+					})
+					.error(function(xhr) {
+						layer.msg('请求失败，' + xhr.status);
+					});
+
+				});
+
+			});
+		</script>
+
+</body>
+
+</html>

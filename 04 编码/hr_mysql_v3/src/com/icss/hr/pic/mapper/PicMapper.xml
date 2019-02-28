@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.icss.hr.pic.dao.PicMapper">
+
+	<resultMap id="BaseResultMap" type="com.icss.hr.pic.pojo.Pic">
+		<id column="pic_id" property="picId" jdbcType="INTEGER" />
+		<result column="pic_name" property="picName" jdbcType="VARCHAR" />
+		<result column="pic_info" property="picInfo" jdbcType="VARCHAR" />
+		<result column="pic_size" property="picSize" jdbcType="BIGINT" />
+		<result column="pic_author" property="picAuthor" jdbcType="VARCHAR" />
+		<result column="pic_datetime" property="picDatetime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<resultMap id="ResultMapWithBLOBs" type="com.icss.hr.pic.pojo.Pic"
+		extends="BaseResultMap">
+		<result column="pic_data" property="picData" jdbcType="LONGVARBINARY" />
+	</resultMap>
+
+	<insert id="insert" parameterType="com.icss.hr.pic.pojo.Pic">
+		insert into pic (pic_id,
+		pic_name, pic_info,
+		pic_size, pic_author, pic_datetime,
+		pic_data)
+		values
+		(default, #{picName,jdbcType=VARCHAR},
+		#{picInfo,jdbcType=VARCHAR},
+		#{picSize,jdbcType=BIGINT}, #{picAuthor,jdbcType=VARCHAR},
+		#{picDatetime,jdbcType=TIMESTAMP},
+		#{picData,jdbcType=LONGVARBINARY})
+	</insert>
+
+	<delete id="delete" parameterType="java.lang.Integer">
+		delete from pic
+		where pic_id=#{picId,jdbcType=INTEGER}
+	</delete>
+
+	<select id="queryById" resultMap="ResultMapWithBLOBs"
+		parameterType="java.lang.Integer">
+		select *		
+		from pic
+		where pic_id = #{picId,jdbcType=INTEGER}
+	</select>
+	
+	<select id="query" resultMap="BaseResultMap">
+		select * from pic 
+		order by pic_datetime desc
+	</select>
+
+</mapper>

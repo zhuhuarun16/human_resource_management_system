@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
+
+	<!-- ##########shiro框架配置########## 开始 -->
+
+	<!-- 生命周期对象 -->
+	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+
+	<!-- 自定义realm对象 -->
+	<bean id="shiroRealm" class="com.icss.hr.common.ShiroRealm"></bean>
+
+	<!-- 配置缓存，只会查询一次当前用户的授权，然后放到缓存中，以后都是从缓存中查询当前用户的权限 -->
+	<bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager" />
+	
+
+	<!-- 安全管理器对象 -->
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<property name="cacheManager" ref="cacheManager" />
+		<property name="realm" ref="shiroRealm" />
+	</bean>
+
+	<!-- 生命周期代理对象 -->
+	<bean
+		class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+		depends-on="lifecycleBeanPostProcessor">
+		<property name="proxyTargetClass" value="true" />
+	</bean>
+
+	<!-- 安全认证对象 -->
+	<bean
+		class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+		<property name="securityManager" ref="securityManager" />
+	</bean>
+	
+	<!-- 配置logout后的跳转页url -->
+	<bean id="logoutFilter" class="org.apache.shiro.web.filter.authc.LogoutFilter">
+	    <property name="redirectUrl" value="/logout.jsp" />
+	</bean>
+
+	<!-- id="shiroFilter"必须要和web.xml中过滤器名称保持一致 -->
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+
+		<property name="securityManager" ref="securityManager" />
+
+		<!-- #####以下为可选配置，请按照实际项目需要进行配置#### -->
+		<!-- 登陆页的url -->
+		<property name="loginUrl" value="/logout.jsp" />
+
+		<!-- 登陆成功跳转的页（可选） -->
+		<property name="successUrl" value="/main.html" />
+
+		<!-- 权限验证失败跳转的url -->
+		<property name="unauthorizedUrl" value="/failed.jsp" />
+
+		<!-- filters属性也是可选的，用来声明一些可以在filterChainDefinitions 里面使用的filter。 如果你声明的filter名称是shiro默认有的，那么将会覆盖默认的filter -->
+		<property name="filterChainDefinitions">
+			<value>				
+				/ = anon
+				/login.html = anon
+				/emp/login* = anon
+				/css/** = anon
+				/images/** = anon				
+				/js/** = anon
+				/logout.jsp* = anon
+				
+				/dept/add = authc,perms[dept:create]
+				/dept/update = authc,perms[dept:update]				
+				/dept/delete = authc,perms[dept:delete]
+				/dept/get = authc,perms[dept:query]
+				/dept/query = authc,perms[dept:query]
+				/dept/queryJson = authc,perms[dept:query]
+				
+				/AddDept.html = authc,roles[deptAdmin]
+				/QueryDept.jsp = authc,roles[deptAdmin]
+				/UpdateDept.jsp = authc,roles[deptAdmin]
+				
+				/job/get = authc,perms[job:query]
+				/job/query = authc,perms[job:query]
+				/job/add = authc,perms[job:create]
+				/job/delete = authc,perms[job:delete]
+				/job/update = authc,perms[job:update]
+				
+				/AddJob.html = authc,roles[jobAdmin]
+				/UpdateJob.html = authc,roles[jobAdmin]
+				/QueryJob.html = authc,roles[jobAdmin]	
+				
+				/emp/add = authc,perms[emp:create]				
+				/emp/delete = authc,perms[emp:delete]
+				/emp/update = authc,perms[emp:update]
+				/emp/get = authc,perms[emp:query]
+				/emp/query = authc,perms[emp:query]
+				/emp/queryByCondition =  authc,perms[emp:query]
+				/emp/queryByIndex =  authc,perms[emp:query]
+								
+				/AddEmp.html = authc,roles[empAdmin]
+				/UpdateEmp.html = authc,roles[empAdmin]
+				/QueryEmp.html = authc,roles[empAdmin]
+				/SearchEmp.html = authc,roles[empAdmin]	
+				/SearchIndexEmp.html = authc,roles[empAdmin]
+				
+				/ana/queryEmpCount = authc,roles[anaAdmin]
+				/Analysis.html = authc,roles[anaAdmin]	
+				
+				/pic/add = authc,perms[pic:create]	
+				/pic/delete = authc,perms[pic:delete]
+				/pic/query = authc,perms[pic:query]
+				/pic/get = authc,perms[pic:query]
+				/pic/download = authc,perms[pic:query]
+				
+				/AddPic.html = authc,perms[pic:create]
+				/QueryPic.html = authc,perms[pic:query]
+				/ShowImg.jsp = authc,perms[pic:query]	
+								
+				/logout = authc,logout
+				/** = authc				
+			</value>
+		</property>
+		
+		<!-- 配置logou后的跳转url -->
+		<property name="filters">  
+            <map>  
+                <entry key="logout" value-ref="logoutFilter" />  
+            </map>  
+        </property>
+		
+	</bean>
+
+	<!-- ##########shiro框架配置########## 结束 -->
+
+</beans>

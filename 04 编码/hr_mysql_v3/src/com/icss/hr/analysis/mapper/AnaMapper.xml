@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.icss.hr.analysis.dao.AnaMapper">
+
+	<select id="queryEmpCount" resultType="java.util.HashMap">
+		SELECT d.`dept_name`
+		deptName,COUNT(e.`emp_id`) empCount
+		FROM emp e
+		RIGHT OUTER JOIN dept d ON e.`emp_dept_id`=d.`dept_id`
+		GROUP BY d.`dept_name`
+	</select>
+
+</mapper>

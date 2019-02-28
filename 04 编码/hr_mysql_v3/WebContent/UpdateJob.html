@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<!--设置浏览器的布局视口，只在移动端浏览器起作用-->
+		<meta name="viewport" content="width=width-device,initial-scale=1,user-scalable=no" />
+		<title></title>
+		<!--引入bootstrap的核心css-->
+		<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+		
+		<!--判断如果是IE9以下，引入兼容h5标签的js文件，注意空格的位置-->		
+		<!--[if lt IE 9]>
+		<script src="js/bootstrap/js/html5shiv.min.js"></script>
+		<script src="js/bootstrap/js/respond.min.js"></script>		
+		<![end if] -->
+	</head>
+	<body>
+		<div class="container">		
+						
+			<h2 class="page-header">职务详情</h2>
+			
+			<form id="form1" class="form-horizontal">
+				<div class="form-group">
+					<label for="" class="col-md-2">职务编号</label>
+					<div class="col-md-10">
+						<input id="jobId" name="jobId" type="text" placeholder="职务编号" class="form-control" readonly/>
+					</div>					
+				</div>	
+				<div class="form-group">
+					<label for="" class="col-md-2">职务名称</label>
+					<div class="col-md-10">
+						<input id="jobName" name="jobName" type="text" placeholder="请输入职务名称" class="form-control"/>
+					</div>					
+				</div>				
+				<div class="form-group">
+					<label for="" class="col-md-2">最低工资</label>
+					<div class="col-md-10">
+						<input id="jobMinSal" name="jobMinSal" type="text" placeholder="请输入最低工资" class="form-control"/>
+					</div>					
+				</div>	
+				<div class="form-group">
+					<label for="" class="col-md-2">最高工资</label>
+					<div class="col-md-10">
+						<input id="jobMaxSal" name="jobMaxSal" type="text" placeholder="请输入最高工资" class="form-control"/>
+					</div>					
+				</div>	
+					
+				<div class="form-group" >					
+					<div class="col-md-10 col-md-offset-2">						
+						<input type="button" value="修改职务信息" class="btn btn-success" id="updateBtn"/>
+						<input type="button" value="取消" class="btn btn-danger" onclick="window.parent.layer.closeAll();" />
+					</div>
+				</div>
+			</form>		
+		</div>
+		
+		<!--引入jquery-->
+		<script src="js/jquery.js"></script>
+		<!-- 引入全局js -->
+		<script src="js/global.js"></script>
+		<!--引入参数工具js-->
+		<script src="js/param.js"></script>
+		<!--引入bootstrap的js功能-->
+		<script src="js/bootstrap/js/bootstrap.js"></script>
+		<!--引入layer插件-->
+		<script src="js/layer/layer.js"></script>
+				
+		<script>								
+		
+			$(function(){
+								
+				//根据id查询员工数据，填充到表单中显示
+				var jobId = $.getParam('jobId');
+				
+				$.getJSON(baseUrl + '/job/get',{jobId:jobId},function(data) {
+					
+					console.log(data);
+					
+					$('#jobId').val(data.jobId);
+					$('#jobName').val(data.jobName);
+					$('#jobMinSal').val(data.jobMinSal);
+					$('#jobMaxSal').val(data.jobMaxSal);
+					
+				})
+				.error(function(xhr) {
+					layer.msg('查询职务数据失败，' + xhr.status);					
+				});
+				
+				/**
+				 * 表单验证函数
+				 */
+				function checkForm() {
+					
+					//正则表达式对象
+					var r;
+					
+					//姓名
+					var jobName = $('#jobName');
+					
+					if (jobName.val() == '' || jobName.val().length > 10) {
+						layer.msg('员工姓名不能为空且最多10字符');
+						jobName.focus();
+						return false;
+					}
+					
+					//工资判定
+					var jobMinSal = $('#jobMinSal');
+					var jobMaxSal = $('#jobMaxSal');
+					
+					if( parseFloat( jobMinSal.val() ) > parseFloat( jobMaxSal.val() ) ){
+					
+						layer.msg('最低工资高于最高工资');
+						jobMinSal.focus();
+						return false;
+					}
+					
+					return true;
+						
+				}
+				
+				//单击修改按钮，修改员工信息
+				$('#updateBtn').click(function() {
+					
+					//调用表单验证
+					if ( !checkForm() )
+						return;					
+										
+					var params = $('#form1').serialize();
+										
+					//发出ajax请求，调用后端代码
+					$.ajax({
+						url:baseUrl + '/job/update',
+						type:'POST',
+						dataType:'html',
+						data:params					
+					})
+					.done(function(data) {
+						
+						layer.msg('修改职务成功！');
+						
+						setTimeout(function() {									
+							//父窗口刷新，跳转到指定页码的画面
+							window.parent.location.href = 'QueryJob.html';
+							
+							//调用父窗口的关闭层语句关闭自己本身窗口
+							window.parent.layer.closeAll();
+						},500);
+						
+					})
+					.fail(function(xhr,errorStatus,errorText) {
+						layer.msg('请求失败，' + errorText + ',' + xhr.status );					
+					});						
+					
+				});				
+				
+			});					
+		</script>
+	</body>
+</html>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.icss.hr.dept.dao.DeptMapper">
+
+	<resultMap id="BaseResultMap" type="com.icss.hr.dept.pojo.Dept">
+		<id column="dept_id" property="deptId" jdbcType="INTEGER" />
+		<result column="dept_name" property="deptName" jdbcType="VARCHAR" />
+		<result column="dept_loc" property="deptLoc" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<insert id="insert" parameterType="com.icss.hr.dept.pojo.Dept">
+		insert into dept (dept_id,
+		dept_name, dept_loc
+		)
+		values (default, #{deptName,jdbcType=VARCHAR},
+		#{deptLoc,jdbcType=VARCHAR}
+		)
+	</insert>
+
+	<update id="update" parameterType="com.icss.hr.dept.pojo.Dept">
+		update dept
+		set dept_name =
+		#{deptName,jdbcType=VARCHAR},
+		dept_loc = #{deptLoc,jdbcType=VARCHAR}
+		where dept_id = #{deptId,jdbcType=INTEGER}
+	</update>
+
+	<delete id="delete" parameterType="java.lang.Integer">
+		delete from dept
+		where dept_id
+		= #{deptId,jdbcType=INTEGER}
+	</delete>
+
+	<select id="queryById" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select *
+		from dept
+		where dept_id = #{deptId,jdbcType=INTEGER}
+	</select>
+
+	<select id="query" resultMap="BaseResultMap">
+		select * from dept
+	</select>
+</mapper>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<!--设置浏览器的布局视口，只在移动端浏览器起作用-->
+		<meta name="viewport" content="width=width-device,initial-scale=1,user-scalable=no" />
+		<title></title>
+		<!--引入bootstrap的核心css-->
+		<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+		<!--引入日历css-->
+		<link rel="stylesheet" type="text/css" href="js/datetimepicker/jquery.datetimepicker.css"/>
+		<!--判断如果是IE9以下，引入兼容h5标签的js文件，注意空格的位置-->		
+		<!--[if lt IE 9]>
+		<script src="js/bootstrap/js/html5shiv.min.js"></script>
+		<script src="js/bootstrap/js/respond.min.js"></script>		
+		<![end if] -->
+	</head>
+	<body>
+		<div class="container">		
+			
+			<ol class="breadcrumb">
+				<li><a href="#">人力资源管理系统</a></li>
+				<li><a href="#">密码管理</a></li>
+				<li>修改密码</li>
+			</ol>
+			
+			<h2 class="page-header">修改密码</h2>
+			
+			<form id="form1" class="form-horizontal">	
+				<div class="form-group">
+					<label for="" class="col-md-2">旧密码</label>
+					<div class="col-md-10">
+						<input id="empOldPwd" name="empOldPwd" type="password" placeholder="请输入登录账号" class="form-control"/>
+					</div>					
+				</div>	
+				<div class="form-group">
+					<label for="" class="col-md-2">新密码</label>
+					<div class="col-md-10">
+						<input id="empPwd" name="empPwd" type="password" placeholder="请输入初始密码" class="form-control"/>
+					</div>					
+				</div>	
+				<div class="form-group">
+					<label for="" class="col-md-2">确认密码</label>
+					<div class="col-md-10">
+						<input id="empPwd2" name="empPwd2" type="password" placeholder="再次输入密码" class="form-control"/>
+					</div>					
+				</div>						
+				<div class="col-md-10 col-md-offset-2">
+					<input type="button" value="立即修改" class="btn btn-success" id="updateBtn"/>
+					<input type="button" value="取消" class="btn btn-danger" onclick="history.back();" />
+				</div>				
+			</form>		
+		</div>
+		
+		<!--引入jquery-->
+		<script src="js/jquery.js"></script>
+		<!-- 引入全局js -->
+		<script src="js/global.js"></script>
+		<!--引入bootstrap的js功能-->
+		<script src="js/bootstrap/js/bootstrap.js"></script>
+		<!--引入layer插件-->
+		<script src="js/layer/layer.js"></script>
+		<!--引入日历js-->
+		<script src="js/datetimepicker/jquery.datetimepicker.js" type="text/javascript" charset="utf-8"></script>
+		<script>			
+			$(function(){
+				
+				//单击增加按钮，修改密码
+				$('#updateBtn').click(function(){
+					
+					$.ajax({
+						url:baseUrl + '/emp/queryByLoginName',
+						type:'POST',
+						dataType:'json',
+						async:false
+					})
+					.done(function(data) {
+						
+						//判断旧密码是否匹配
+						if($('#empOldPwd').val()==data.empPwd){
+							layer.msg("旧密码输入正确");
+							
+							//密码必须是6-8位字母数字或下划线
+							var empPwd = $('#empPwd');
+							var empPwd2 = $('#empPwd2');
+							
+							var r = /^\w{6,8}$/;
+							
+							if(!r.test(empPwd.val())){
+								layer.msg("密码必须是6-8位字母数字或下划线");
+								return;
+							}
+							
+							//两次密码必须输入一致
+						
+							if(empPwd.val() != empPwd2.val()){
+								layer.msg("两次密码输入不一致");
+								return;
+							}
+							
+							params = {								
+								empPwd:$('#empPwd').val()
+							};
+							
+							//发出ajax请求，调用后端代码
+							$.ajax({
+								url:baseUrl + '/emp/updatePwd',
+								type:'POST',
+								dataType:'html',
+								data:params,
+								async:false
+							})
+							.done(function(data) {
+								
+								layer.msg('修改成功，请重新登录');
+								
+								setTimeout(function() {
+									window.top.location.href = 'logout.jsp';
+								},500);
+							})
+							.fail(function(xhr,errorStatus,errorText) {
+								layer.msg('请求失败，' + errorText + ',' + xhr.status );					
+							});
+							
+						} else{
+							layer.msg("旧密码输入错误");
+							return;
+						}
+					})
+					.fail(function(xhr,errorStatus,errorText) {
+						layer.msg('请求失败，' + errorText + ',' + xhr.status );					
+					});
+					
+				});
+				
+				$('#empPwd2').change(function(){
+					
+					var empPwd = $('#empPwd');
+					var empPwd2 = $('#empPwd2');
+					
+					if(empPwd.val()!=empPwd2.val()){
+						layer.msg("两次密码输入不一致")
+						return false;
+					}
+				});
+				
+			});	
+			
+		
+		</script>
+	</body>
+</html>

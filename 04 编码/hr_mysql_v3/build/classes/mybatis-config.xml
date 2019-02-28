@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>	
+	
+	<!-- 实体类的别名 -->
+	<typeAliases>
+		<typeAlias type="com.icss.hr.dept.pojo.Dept" alias="Dept"/>
+		<typeAlias type="com.icss.hr.job.pojo.Job" alias="Job"/>
+		<typeAlias type="com.icss.hr.emp.pojo.Emp" alias="Emp"/>
+		<typeAlias type="com.icss.hr.pic.pojo.Pic" alias="Pic"/>
+	</typeAliases>
+		
+</configuration>

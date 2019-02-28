@@ -1,0 +1,3 @@
+数据库：oracle  数据库连接工具类 com.icss.hr.common.DbUtil
+开发技术：jdbc+servlet
+/js/global.js  设置全局ajax访问路径

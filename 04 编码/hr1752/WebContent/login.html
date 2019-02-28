@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>登录画面</title>
+<link rel="stylesheet" href="css/login.css" />
+</head>
+
+<body>
+	<!--登录主体区开始-->
+	<div id="main">
+		<!--头像区开始-->
+		<div id="header_pic">
+			<div class="wrapper"></div>
+		</div>
+		<!--头像区结束-->
+		<!--账号密码区开始-->
+		<div id="account">
+			<div class="input">
+				<input type="text" id="empLoginName" name="empLoginName"
+					placeholder="please input username" />
+			</div>
+			<div class="input">
+				<input type="password" id="empPwd" name="empPwd"
+					placeholder="please input password" />
+			</div>
+		</div>
+		<!--账号密码区结束-->
+		<!--登录按钮开始-->
+		<input type="button" value="Sign In" class="btn1" id="login-btn" />
+		<!--登录按钮结束-->
+		<!--忘记密码开始-->
+		<div id="footer">
+			<a href="#">Forget Password?</a>
+		</div>
+		<!--忘记密码结束-->
+	</div>
+	<!--登录主体区结束-->
+
+	<!--引入jquery-->
+	<script src="js/jquery.js"></script>
+	<!-- 引入全局js -->
+	<script src="js/global.js"></script>
+	<!--引入layer插件-->
+	<script src="js/layer/layer.js"></script>
+	<script>
+		
+		//打开网页，判断当前有没有本地存储用户名和头像数据
+		if (localStorage.getItem('empLoginName')) {
+			$('#empLoginName').val( localStorage.getItem('empLoginName') );
+		}
+		
+		if (localStorage.getItem('empPic')) {
+			$('#header_pic .wrapper').css('background','url(' + localStorage.getItem('empPic') + ')');
+		}
+			
+		$('#login-btn').click(function() {
+			
+			var empLoginName = $('#empLoginName');
+			var empPwd = $('#empPwd');
+
+			var params = {
+				empLoginName : empLoginName.val(),
+				empPwd : empPwd.val()
+			}
+
+			$.ajax({
+				url : baseUrl + '/LoginServlet',
+				type : 'POST',
+				dataType : 'html',
+				data : params
+			}).done(function(data) {
+				
+				if (data == '1') {
+					layer.msg('用户名不存在！');
+				} else if (data == '2') {
+					layer.msg('密码错误！');
+				} else if (data == '3') {
+					
+					layer.msg('登录成功！');
+					
+					//记录用户名到本地存储
+					localStorage.setItem("empLoginName",empLoginName.val());
+					
+					/**
+					 *如果用户有头像数据，把头像数据保存到本地存储，没有头像数据，则删除原来的头像数据
+					 */
+					$.get(baseUrl + '/GetEmpPicServlet',function(data) {
+					
+						if (data && data != 'null' ) {							
+							localStorage.setItem('empPic',data);														
+						} else {							
+							localStorage.removeItem('empPic');
+						}
+						
+						location.href = 'main.html';
+					})
+					.error(function(xhr) {
+						layer.msg('请求失败！' + xhr.status);						
+					});					
+					
+				}				
+
+			}).fail(function(xhr, errorStatus, errorText) {
+				layer.msg('请求失败，' + errorText + ',' + xhr.status);
+			});
+		});
+	</script>
+</body>
+
+</html>

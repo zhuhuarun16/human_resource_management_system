@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.icss.hr.perm.dao.PermissionMapper">
+
+	<select id="queryPerm" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		select p.perm_name
+		from emp e
+		inner join user_role ur on e.emp_id=ur.user_id
+		inner join role r on ur.role_id=r.role_id
+		inner join role_permission rp on r.role_id=rp.role_id
+		inner join permission p on p.perm_id=rp.perm_id
+		where e.emp_login_name=#{empLoginName}
+	</select>
+
+	<select id="queryRole" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		select r.role_name
+		from emp e
+		inner join user_role ur on e.emp_id=ur.user_id
+		inner join role r on ur.role_id=r.role_id
+		where e.emp_login_name=#{empLoginName}
+	</select>
+
+</mapper>

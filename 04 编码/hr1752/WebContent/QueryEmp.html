@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<!--设置浏览器的布局视口，只在移动端浏览器起作用-->
+<meta name="viewport"
+	content="width=width-device,initial-scale=1,user-scalable=no" />
+<title></title>
+<!--引入bootstrap的核心css-->
+<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+<!--引入日历css-->
+<link rel="stylesheet"
+	href="js/datetimepicker/jquery.datetimepicker.css" />
+
+<!--判断如果是IE9以下，引入兼容h5标签的js文件，注意空格的位置-->
+<!--[if lt IE 9]>
+		<script src="js/bootstrap/js/html5shiv.min.js"></script>
+		<script src="js/bootstrap/js/respond.min.js"></script>		
+		<![end if] -->
+
+<style>
+.pagination {
+	margin: 0 !important;
+}
+</style>
+</head>
+<body>
+	<div class="container">
+
+		<ol class="breadcrumb">
+			<li><a href="#">人力资源管理系统</a></li>
+			<li><a href="#">员工管理</a></li>
+			<li>查询员工</li>
+		</ol>
+
+		<h2 class="page-header">员工数据列表</h2>
+
+		<table class="table table-bordered table-striped" id="dataTable">
+			<thead>
+				<tr>
+					<th>员工编号</th>
+					<th>员工姓名</th>
+					<th>邮箱</th>
+					<th>电话</th>
+					<th>部门</th>
+					<th>职务</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				<!--<tr>
+						<td>100</td>
+						<td>tom</td>
+						<td>tom@163.com</td>
+						<td>13012345678</td>
+						<td>开发部</td>
+						<td>程序员</td>
+						<td>
+							<input type="button" value="删除" class="btn btn-danger btn-sm del-btn"/>
+							<input type="button" value="详情" class="btn btn-success btn-sm update-btn" />
+						</td>
+					</tr>-->
+			</tbody>
+		</table>
+
+		<!--分页工具条-->
+		<div class="row">
+			<div class="col-sm-4">
+				<div id="pagerInfo">共XX条数据，XX/XX页</div>
+			</div>
+			<div class="col-sm-8">
+				<nav id="pagerNav">
+					<ul class="pagination pagination-sm pull-right">
+						<li><a href="javascript:;" id="firstBtn">首页</a></li>
+						<li><a href="javascript:;" id="prevBtn">上页</a></li>
+						<li><a href="javascript:;" id="nextBtn">下页</a></li>
+						<li><a href="javascript:;" id="lastBtn">末页</a></li>
+					</ul>
+				</nav>
+			</div>
+		</div>
+
+		<div class="row" style="margin-top: 20px;">
+			<div class="col-sm-offset-8 col-sm-4">
+				<a href="AddEmp.html" class="btn btn-success btn-block">增加新员工</a>
+			</div>
+		</div>
+
+	</div>
+
+	<!--引入jquery-->
+	<script src="js/jquery.js"></script>
+	<!-- 引入全局js -->
+	<script src="js/global.js"></script>
+	<!--引入请求参数插件js-->
+	<script src="js/param.js"></script>
+	<!--引入bootstrap的js功能-->
+	<script src="js/bootstrap/js/bootstrap.js"></script>
+	<!--引入layer插件-->
+	<script src="js/layer/layer.js"></script>
+	<!--引入日历js-->
+	<script src="js/datetimepicker/jquery.datetimepicker.js"></script>
+
+	<script>
+			$(function(){
+				
+				//分页变量
+				var recordCount;//总记录数
+				var pageSize = 10;//每页多少条
+				var pageCount;//共几页
+				var pageNum = $.getParam('pageNum') ;//当前页
+				
+				if (pageNum == undefined)
+					pageNum = 1;
+								
+				//初始化调用
+				getData();
+				
+				//分页查询函数
+				function getData() {
+					
+					$.getJSON(baseUrl + '/QueryEmpServlet',{pageNum:pageNum,pageSize:pageSize},function(data) {
+						
+						var list = data.list;//获得数据集合
+						
+						var html;//拼接html字符串
+						
+						var dataTable = $('#dataTable tbody');
+						
+						//清空原始内容
+						dataTable.empty();
+												
+						//遍历数据集合
+						$.each(list, function(index,item) {
+							
+							html = '<tr>';
+							html += '	<td>' + item.empId + '</td>';
+							html += '	<td>' + item.empName + '</td>';
+							html += '	<td>' + item.empEmail + '</td>';
+							html += '	<td>' + item.empPhone + '</td>';
+							html += '	<td>' + item.dept.deptName + '</td>';
+							html += '	<td>' + item.job.jobName + '</td>';
+							html += '	<td>';
+							html += '		<input type="button" data-id="' + item.empId + '" value="删除" class="btn btn-danger btn-sm del-btn"/>';
+							html += '		<input type="button" data-id="' + item.empId + '" value="详情" class="btn btn-success btn-sm update-btn" />';
+							html += '		<a class="btn btn-info btn-sm" href="UpdateEmp.html?empId=' + item.empId + '&pageNum=' + pageNum + '">修改</a>';
+							html += '	</td>';
+							html += '</tr>';
+							
+							dataTable.append(html);							
+						});
+						
+						
+						//设置分页信息
+						recordCount = data.pager.recordCount;
+						pageSize = data.pager.pageSize;
+						pageCount = data.pager.pageCount;
+						pageNum = data.pager.pageNum;
+						
+						$('#pagerInfo').html('共' + recordCount + '条数据，' + pageNum + '/' + pageCount + '页');
+						
+						//动态显示分页按钮
+						if (pageNum == 1) {
+							$('#firstBtn').hide();
+							$('#prevBtn').hide();							
+						} else {
+							$('#firstBtn').show();
+							$('#prevBtn').show();
+						}
+						
+						if (pageNum == pageCount) {
+							$('#nextBtn').hide();
+							$('#lastBtn').hide();
+						} else {
+							$('#nextBtn').show();
+							$('#lastBtn').show();
+						}	
+						
+						//动态生成页码按钮（一次显示5个按钮）
+						var start = pageNum - 2;
+						var end = pageNum + 2;
+						
+						if (pageNum <= 3) {
+							start = 1;
+							end = 5;
+						}
+						
+						if (pageNum >= pageCount - 2) {
+							end = pageCount;
+						}
+						
+						if (pageCount < 5) {
+							end = pageCount;
+						}
+						
+						$('.pagenum-btn').remove();//删除原始数据
+						
+						for (var i = start;i <= end;i ++) {
+							
+							var html = $('<li><a href="javascript:;" class="pagenum-btn">' + i + '</a></li>');
+							
+							//当前页码高亮
+							if (i == pageNum) {
+								html.addClass('active');
+							}
+							
+							$('#nextBtn').parent().before(html);
+						}
+						
+					});
+					
+				}			
+				
+				//首页按钮单击
+				$('#firstBtn').click(function() {					
+					pageNum = 1;
+					getData();					
+				});
+				
+				//上页按钮单击
+				$('#prevBtn').click(function() {					
+					pageNum --;
+					getData();					
+				});
+				
+				//下页按钮单击
+				$('#nextBtn').click(function() {					
+					pageNum ++;
+					getData();					
+				});
+				
+				//末页按钮单击
+				$('#lastBtn').click(function() {					
+					pageNum = pageCount;
+					getData();					
+				});
+				
+				//利用事件委托加页码按钮单击事件
+				$('#pagerNav').on('click','.pagenum-btn',function(e) {					
+					pageNum = $(this).text();				
+					getData();															
+				});		
+				
+				//利用事件委托添加删除按钮操作
+				$('#dataTable').on('click','.del-btn',function() {
+					
+					if ( !window.confirm('确定要删除此员工数据吗？') ) {
+						return;					
+					}
+					
+					//获得当前员工id
+					var empId = $(this).attr('data-id');
+					
+					var that = this;
+					
+					$.post(baseUrl + '/DelEmpServlet',{empId:empId},function() {
+						
+						layer.msg('删除成功');
+						
+						//删除前端数据行
+						$(that).parents('tr').remove();
+						
+					})
+					.error(function(xhr,errorStatus,errorText) {
+						layer.msg('请求失败，' + xhr.status + ',' + errorText);
+					});
+										
+				});
+				
+				//利用事件委托添加详情按钮功能
+				$('#dataTable').on('click','.update-btn',function() {
+					
+					//获得当前员工id
+					var empId = $(this).attr('data-id');
+					
+					// 弹出员工详情模态层
+					layer.open({
+						title:'员工详情',
+					    type: 2, 				   
+					    area: ['700px', '600px'], //宽高
+					    content: 'UpdateEmp.html?empId=' + empId + '&pageNum=' + pageNum
+					});
+					
+				});
+				
+			});				
+		</script>
+</body>
+</html>

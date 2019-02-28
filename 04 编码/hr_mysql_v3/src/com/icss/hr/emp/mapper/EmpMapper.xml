@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.icss.hr.emp.dao.EmpMapper">
+
+	<resultMap id="BaseResultMap" type="com.icss.hr.emp.pojo.Emp">
+
+		<id column="emp_id" property="empId" jdbcType="INTEGER" />
+		<result column="emp_name" property="empName" jdbcType="VARCHAR" />
+		<result column="emp_login_name" property="empLoginName"
+			jdbcType="VARCHAR" />
+		<result column="emp_pwd" property="empPwd" jdbcType="VARCHAR" />
+		<result column="emp_email" property="empEmail" jdbcType="VARCHAR" />
+		<result column="emp_phone" property="empPhone" jdbcType="VARCHAR" />
+		<result column="emp_salary" property="empSalary" jdbcType="DOUBLE" />
+		<result column="emp_hiredate" property="empHiredate" jdbcType="DATE" />
+		<result column="emp_info" property="empInfo" jdbcType="VARCHAR" />
+
+		<!-- 员工部门多对一映射 -->
+		<association property="dept" javaType="Dept">
+			<id column="dept_id" property="deptId" jdbcType="INTEGER" />
+			<result column="dept_name" property="deptName" jdbcType="VARCHAR" />
+			<result column="dept_loc" property="deptLoc" jdbcType="VARCHAR" />
+		</association>
+
+		<!-- 员工职务多对一映射 -->
+		<association property="job" javaType="Job">
+			<id column="job_id" jdbcType="INTEGER" property="jobId" />
+			<result column="job_name" jdbcType="VARCHAR" property="jobName" />
+			<result column="job_min_sal" jdbcType="INTEGER" property="jobMinSal" />
+			<result column="job_max_sal" jdbcType="INTEGER" property="jobMaxSal" />
+		</association>
+	</resultMap>
+
+	<resultMap id="ResultMapWithBLOBs" type="com.icss.hr.emp.pojo.Emp"
+		extends="BaseResultMap">
+		<result column="emp_pic" property="empPic" jdbcType="LONGVARCHAR" />
+	</resultMap>
+
+	<insert id="insert" parameterType="com.icss.hr.emp.pojo.Emp">
+		insert into emp (emp_id,
+		emp_name, emp_login_name,
+		emp_pwd, emp_email, emp_phone,
+		emp_salary,
+		emp_hiredate, emp_dept_id,
+		emp_job_id, emp_info
+		)
+		values (default,
+		#{empName,jdbcType=VARCHAR},
+		#{empLoginName,jdbcType=VARCHAR},
+		#{empPwd,jdbcType=VARCHAR}, #{empEmail,jdbcType=VARCHAR},
+		#{empPhone,jdbcType=VARCHAR},
+		#{empSalary,jdbcType=DOUBLE},
+		#{empHiredate,jdbcType=DATE},
+		#{dept.deptId,jdbcType=INTEGER},
+		#{job.jobId,jdbcType=INTEGER}, #{empInfo,jdbcType=VARCHAR}
+		)
+	</insert>
+
+	<update id="update" parameterType="com.icss.hr.emp.pojo.Emp">
+		update emp
+		set emp_name =
+		#{empName,jdbcType=VARCHAR},
+		emp_phone = #{empPhone,jdbcType=VARCHAR},
+		emp_salary =
+		#{empSalary,jdbcType=DOUBLE},
+		emp_dept_id =
+		#{dept.deptId,jdbcType=INTEGER},
+		emp_job_id =
+		#{job.jobId,jdbcType=INTEGER},
+		emp_info = #{empInfo,jdbcType=VARCHAR}
+		where emp_id = #{empId,jdbcType=INTEGER}
+	</update>
+
+	<delete id="delete" parameterType="java.lang.Integer">
+		delete from emp
+		where emp_id =
+		#{empId,jdbcType=INTEGER}
+	</delete>
+
+	<select id="queryById" parameterType="java.lang.Integer"
+		resultMap="BaseResultMap">
+		SELECT e.*,e.`emp_dept_id` dept_id,e.`emp_job_id` job_id
+		FROM emp e WHERE emp_id=#{empId,jdbcType=INTEGER}
+	</select>
+
+	<select id="queryByPage" resultMap="BaseResultMap"
+		parameterType="com.icss.hr.common.Pager">
+		SELECT
+		e.`emp_id`,e.`emp_name`,e.`emp_login_name`,e.`emp_pwd`,e.`emp_email`,e.`emp_phone`,e.`emp_salary`,e.`emp_hiredate`,d.`dept_name`,j.`job_name`,e.`emp_info`
+		FROM emp e
+		LEFT OUTER JOIN dept d ON e.`emp_dept_id`=d.`dept_id`
+		LEFT OUTER JOIN job j ON e.`emp_job_id`=j.`job_id`
+		LIMIT #{start},#{pageSize}
+	</select>
+	
+	<select id="getCount" resultType="java.lang.Integer">
+		select count(*) from emp
+	</select>
+	
+	<select id="queryByLoginName" resultMap="ResultMapWithBLOBs">
+		SELECT	e.`emp_id`,e.`emp_login_name`,e.`emp_pwd`,e.`emp_pic`
+		FROM emp e
+		WHERE e.`emp_login_name`=#{empLoginName}
+	</select>
+	
+	<update id="updateEmpPic">
+		update emp set emp_pic=#{empPic} where emp_login_name=#{empLoginName}
+	</update>
+	
+	<update id="updatePwd" parameterType="Emp">
+		update emp set emp_pwd=#{empPwd} where emp_login_name=#{empLoginName}
+	</update>
+
+	<!-- 动态条件SQL -->
+	<select id="queryByCondition" resultMap="BaseResultMap">
+		SELECT
+		e.`emp_id`,e.`emp_name`,e.`emp_login_name`,e.`emp_pwd`,e.`emp_email`,e.`emp_phone`,e.`emp_salary`,e.`emp_hiredate`,d.`dept_name`,j.`job_name`,e.`emp_info`
+		FROM emp e
+		LEFT OUTER JOIN dept d ON e.`emp_dept_id`=d.`dept_id`
+		LEFT OUTER JOIN job j ON e.`emp_job_id`=j.`job_id`		
+		<where>
+			<if test="deptId != null">
+				AND d.`dept_id`=#{deptId}
+			</if>
+			<if test="jobId != null">
+				AND j.`job_id`=#{jobId}
+			</if>
+			<if test="empName != null and empName != '' ">
+				AND e.`emp_name` like concat('%',#{empName},'%')
+			</if>
+		</where>		
+		LIMIT #{pager.start},#{pager.pageSize}
+	</select>
+	
+	<select id="getCountByCondition" resultType="java.lang.Integer">
+		select count(*) from emp
+		<where>
+			<if test="deptId != null">
+				AND emp_dept_id=#{deptId}
+			</if>
+			<if test="jobId != null">
+				AND emp_job_id=#{jobId}
+			</if>
+			<if test="empName != null and empName != '' ">
+				AND emp_name like concat('%',#{empName},'%')
+			</if>
+		</where>
+	</select>
+	
+	<!-- 获得主键自动编号 -->
+	<select id="getPrimaryKey" resultType="java.lang.Integer">
+		SELECT LAST_INSERT_ID()
+	</select>
+	
+</mapper>
